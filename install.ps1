@@ -17,6 +17,7 @@ function Assert-AutoQuestHash([string]$Archive, [string]$Checksum) {
     if ((Get-FileHash -LiteralPath $Archive -Algorithm SHA256).Hash -ne $Matches[1]) { throw 'O SHA-256 nao confere; nenhum arquivo baixado foi executado.' }
 }
 function Expand-AutoQuestPackage([string]$Archive, [string]$Directory) {
+    Add-Type -AssemblyName System.IO.Compression
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $zip = [IO.Compression.ZipFile]::OpenRead($Archive)
     try {
