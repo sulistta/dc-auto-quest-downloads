@@ -1,0 +1,41 @@
+name: Validate installers
+on:
+    push:
+    pull_request:
+    release:
+        types: [published]
+    workflow_dispatch:
+        inputs:
+            test_release:
+                description: Test the published installers and packages
+                type: boolean
+                default: false
+permissions:
+    contents: read
+jobs:
+    linux:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v4
+            - run: bash -n install.sh
+            - run: python3 tests/linux-installer.test.py
+    windows:
+        runs-on: windows-latest
+        steps:
+            - uses: actions/checkout@v4
+            - shell: powershell
+              run: ./tests/installer.tests.ps1
+    published:
+        if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.test_release)
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, windows-latest]
+        runs-on: ${{ matrix.os }}
+        steps:
+            - uses: actions/checkout@v4
+            - if: runner.os == 'Linux'
+              run: ./tests/published-linux.sh
+            - if: runner.os == 'Windows'
+              shell: powershell
+              run: ./tests/published-windows.ps1
